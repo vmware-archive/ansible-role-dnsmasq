@@ -10,8 +10,9 @@
 
 {% if dnsmasq_masquerade -%}
 *nat
+:PREROUTING ACCEPT [0:0]
 :POSTROUTING ACCEPT [0:0]
-
+-F
 #Forward traffic from the alias range {{ dnsmasq_masquerade_networks.internal_net }} through {{ dnsmasq_masquerade_networks.internal_dev }}
 -A POSTROUTING -s {{ dnsmasq_masquerade_networks.internal_net }} -o {{ dnsmasq_masquerade_networks.external_dev }} -j MASQUERADE
 

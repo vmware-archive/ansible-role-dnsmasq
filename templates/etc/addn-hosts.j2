@@ -1,0 +1,3 @@
+{% for h in dnsmasq_hosts -%}
+{{ h.ipv4 }} {{ h.host }}
+{% endfor -%}
