@@ -1,0 +1,3 @@
+{% for d in dnsmasq_dhcp_reservations -%}
+{{ d.Mac }},{{ d.Address }}
+{% endfor -%}

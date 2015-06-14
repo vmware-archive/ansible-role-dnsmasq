@@ -1,0 +1,220 @@
+#!/bin/bash
+#
+# Firewall rules.
+# 
+
+IPTABLES="/usr/bin/iptables --modprobe=/usr/bin/modprobe"
+NET_INT_DEV="{{ firewall.internal_dev }}"
+NET_EXT_DEV="{{ firewall.external_dev }}"
+NET_ADDR="{{ static_nics[0].Address }}/32"
+
+# if using hostapd or setting up a nat server, set ROUTER to 1
+ROUTER=1
+
+# Function to set the file to one or zero.
+enable ()
+{
+    for file in $@; do echo 1 > $file; done
+}
+
+disable ()
+{
+    for file in $@; do echo 0 > $file; done
+}
+
+######################################################################
+function on
+{
+    echo "Firewall: enabling filtering"
+        
+    #Use Selective ACK which can be used to signify that specific packets are missing.
+    disable /proc/sys/net/ipv4/tcp_sack
+
+    # If the kernel should attempt to forward packets.
+    # Off by default.
+    # Routers should enable.
+    if [ $ROUTER -eq 0 ]; then
+        # no forwarded packets allowed
+        disable /proc/sys/net/ipv4/ip_forward
+
+        # Disable source routed packets.
+        disable  /proc/sys/net/ipv4/conf/*/accept_source_route
+
+        # Disable ICMP Redirect acceptance.
+        disable /proc/sys/net/ipv4/conf/*/accept_redirects
+
+        # Don't send Redirect messages.
+        disable /proc/sys/net/ipv4/conf/*/send_redirects
+
+        # Do not respond to packets that would cause us to go out
+        # a different interface than the one to which we're responding.
+        enable /proc/sys/net/ipv4/conf/*/rp_filter
+    else
+        # forwarding of packets allowed
+        enable /proc/sys/net/ipv4/ip_forward
+
+        # enable source routed packets.
+        enable  /proc/sys/net/ipv4/conf/*/accept_source_route
+
+        # enable ICMP Redirect acceptance.
+        enable /proc/sys/net/ipv4/conf/*/accept_redirects
+
+        # Send Redirect messages.
+        enable /proc/sys/net/ipv4/conf/*/send_redirects
+
+        # Do not respond to packets that would cause us to go out
+        # a different interface than the one to which we're responding.
+        disable /proc/sys/net/ipv4/conf/*/rp_filter
+    fi
+
+    #Protect against wrapping sequence numbers and in round trip time measurement.
+    disable /proc/sys/net/ipv4/tcp_timestamps
+   
+    #Help against syn-flood DoS or DDoS attacks using particular choices of initial TCP sequence numbers.
+    enable /proc/sys/net/ipv4/tcp_syncookies
+
+    # Enable broadcast echo protection.
+    enable /proc/sys/net/ipv4/icmp_echo_ignore_broadcasts
+
+    # Log packets with impossible addresses.
+    enable /proc/sys/net/ipv4/conf/*/log_martians
+
+    # Clear any previous rules.
+    $IPTABLES -F
+    $IPTABLES -F -t nat
+    $IPTABLES -F -t mangle
+    
+    # Default drop policy.
+    $IPTABLES -P INPUT DROP
+    $IPTABLES -P OUTPUT DROP
+    $IPTABLES -P FORWARD DROP
+
+    # Allow anything over loopback.
+    $IPTABLES -A INPUT  -i lo -s 127.0.0.1 -j ACCEPT
+    $IPTABLES -A OUTPUT -o lo -d 127.0.0.1 -j ACCEPT
+
+    # Forward all packets from eth1 (internal network) to eth0 (the internet).
+    iptables -A FORWARD -i $NET_INT_DEV -o $NET_EXT_DEV -j ACCEPT
+
+    # Forward packets that are part of existing and related connections from eth0 to eth1.
+    iptables -A FORWARD -i $NET_EXT_DEV -o $NET_INT_DEV -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+    # Drop any tcp packet that does not start a connection with a syn flag.
+    $IPTABLES -A INPUT -p tcp ! --syn -m state --state NEW -j DROP
+
+    # Drop any invalid packet that could not be identified.
+    $IPTABLES -A INPUT -m state --state INVALID -j DROP
+
+    # Drop invalid packets.
+    $IPTABLES -A INPUT -p tcp -m tcp --tcp-flags FIN,SYN,RST,PSH,ACK,URG NONE -j DROP
+    $IPTABLES -A INPUT -p tcp -m tcp --tcp-flags SYN,FIN SYN,FIN              -j DROP
+    $IPTABLES -A INPUT -p tcp -m tcp --tcp-flags SYN,RST SYN,RST              -j DROP
+    $IPTABLES -A INPUT -p tcp -m tcp --tcp-flags FIN,RST FIN,RST              -j DROP
+    $IPTABLES -A INPUT -p tcp -m tcp --tcp-flags ACK,FIN FIN                  -j DROP
+    $IPTABLES -A INPUT -p tcp -m tcp --tcp-flags ACK,URG URG                  -j DROP
+
+    # Reject broadcasts to 224.0.0.1
+    $IPTABLES -A INPUT -d 224.0.0.0 -j REJECT
+
+    # Allow TCP/UDP connections out. Keep state so conns out are allowed back in.
+    $IPTABLES -A INPUT  -p tcp -m state --state ESTABLISHED     -j ACCEPT
+    $IPTABLES -A OUTPUT -p tcp -m state --state NEW,ESTABLISHED -j ACCEPT
+    $IPTABLES -A INPUT  -p udp -m state --state ESTABLISHED     -j ACCEPT
+    $IPTABLES -A OUTPUT -p udp -m state --state NEW,ESTABLISHED -j ACCEPT
+
+    # Allow ICMP out and anything that went out back in.
+    $IPTABLES -A INPUT  -p icmp -m state --state ESTABLISHED      -j ACCEPT
+    $IPTABLES -A OUTPUT -p icmp -m state --state NEW,ESTABLISHED  -j ACCEPT
+
+    # Allow only ICMP echo requests (ping) in. Limit rate in. Uncomment if needed.
+    $IPTABLES -A INPUT  -p icmp -m state --state NEW,ESTABLISHED --icmp-type echo-request -m limit --limit 1/s -j ACCEPT
+
+    # Note: inbound connection rate limiting is set at one per second.
+
+    # Allow connections in as specified by the firewall dict.
+    {% for dport in firewall.inports -%}
+    $IPTABLES -A INPUT -p tcp -m tcp --dport {{ dport }} --tcp-flags SYN,RST,ACK SYN -m state --state NEW -m limit --limit 1/s -j ACCEPT
+    {% endfor %}
+
+    # Allow connections in as specified by the forward dict.
+    {% for f in firewall.forwards -%}
+    $IPTABLES -A INPUT -p tcp -m tcp --dport {{ f.inport }} --tcp-flags SYN,RST,ACK SYN -m state --state NEW -m limit --limit 1/s -j ACCEPT
+    $IPTABLES -A FORWARD -p tcp -s 0/0 -d {{ f.address }}/32 --destination-port {{ f.dport }} --syn -j ACCEPT
+    {% endfor %}
+
+    # Forward connections in as specified by the firewall dict.
+    {% for f in firewall.forwards -%}
+    $IPTABLES -t nat -A PREROUTING -i $NET_EXT_DEV -p {{ f.proto }} --dport {{ f.inport }} -j DNAT --to {{ f.address }}:{{ f.dport }}
+    {% endfor %}
+
+    if [ $ROUTER -ne 0 ]; then
+        $IPTABLES  -A INPUT -i $NET_INT_DEV -p udp --dport 67:68 --sport 67:68 -j ACCEPT
+        $IPTABLES  -A INPUT -i $NET_INT_DEV -p tcp --dport 67:68 --sport 67:68 -j ACCEPT
+        $IPTABLES  -A INPUT -i $NET_INT_DEV -p udp --dport 53 -j ACCEPT
+        $IPTABLES  -A INPUT -i $NET_INT_DEV -p tcp --dport 53 -j ACCEPT
+
+        $IPTABLES -A FORWARD -s $NET_ADDR -o $NET_EXT_DEV -j ACCEPT
+        $IPTABLES -A FORWARD -d $NET_ADDR -m state --state RELATED,ESTABLISHED -j ACCEPT
+        $IPTABLES  -t nat -A POSTROUTING -o $NET_EXT_DEV -j MASQUERADE
+    fi
+
+    # Drop everything that did not match above and log it.
+    $IPTABLES -A INPUT   -j LOG --log-level 4 --log-prefix "IPT_INPUT: "
+    $IPTABLES -A INPUT   -j DROP
+    $IPTABLES -A FORWARD -j LOG --log-level 4 --log-prefix "IPT_FORWARD: "
+    $IPTABLES -A FORWARD -j DROP
+    $IPTABLES -A OUTPUT  -j LOG --log-level 4 --log-prefix "IPT_OUTPUT: "
+    $IPTABLES -A OUTPUT  -j DROP
+}
+
+######################################################################
+function off {
+    # stop firewall
+    echo "Firewall: disabling filtering (allowing all access)"
+    $IPTABLES -F
+    $IPTABLES -F -t nat
+    $IPTABLES -F -t mangle
+    $IPTABLES -P INPUT ACCEPT
+    $IPTABLES -P FORWARD ACCEPT
+    $IPTABLES -P OUTPUT ACCEPT
+}
+
+######################################################################
+function stop
+{
+    # stop all external connections
+    echo "Firewall: stopping all external connections"
+    $IPTABLES -F INPUT
+    $IPTABLES -F OUTPUT
+    $IPTABLES -P INPUT DROP
+    $IPTABLES -P FORWARD REJECT
+    $IPTABLES -P OUTPUT REJECT
+
+    # allow anything over loopback
+    $IPTABLES -A INPUT -i lo -s 127.0.0.1 -j ACCEPT
+    $IPTABLES -A OUTPUT -o lo -d 127.0.0.1 -j ACCEPT
+}
+
+case "$1" in
+    start)
+        on
+        ;;
+    stop)
+        off
+        ;;
+    restart)
+        off
+        on
+        ;;
+    hostapd)
+        ROUTER=1
+        off
+        on
+        ;;
+    *)
+        echo "$0 {start|stop|off}"
+        echo "start: starts the firewall."
+        echo "stop: stops the firewall."
+        echo "off: stops all connectsions."
+    ;;
+esac

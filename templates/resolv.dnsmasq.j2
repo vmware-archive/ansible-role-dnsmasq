@@ -1,0 +1,3 @@
+{% for n in dnsmasq_nameservers -%} 
+nameserver {{ n }}
+{% endfor -%}

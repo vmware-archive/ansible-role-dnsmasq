@@ -1,0 +1,13 @@
+domain={{ dnsmasq_domain_name }}
+resolv-file={{ dnsmasq_resolv_file }}
+dhcp-hostsfile={{ dnsmasq_dhcp_hosts }}
+expand-hosts
+min-port=4096
+rebind-localhost-ok
+#interface=
+dhcp-lease-max=255
+dhcp-authoritative
+{% for d in dnsmasq_dhcp_ranges -%}
+dhcp-range=tag:{{ d.Interface }},{{ d.Range }},{{ d.Netmask }},{{ d.Lease }}
+dhcp-option=tag:{{ d.Interface }},3,{{ d.DNS }}
+{% endfor -%}
