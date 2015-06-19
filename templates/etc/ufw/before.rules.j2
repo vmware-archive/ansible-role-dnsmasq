@@ -13,6 +13,13 @@
 :PREROUTING ACCEPT [0:0]
 :POSTROUTING ACCEPT [0:0]
 -F
+
+# PREROUTING rules
+{% for f in dnsmasq_forwards -%}
+-A PREROUTING -i {{ f.interface }} -p {{ f.proto }} -m {{ f.proto }} --dport {{ f.inport }} -j DNAT --to-destination {{ f.fwd_address}}:{{ f.dport }}
+{% endfor -%}
+
+# POSTROUTING rules
 #Forward traffic from the alias range {{ dnsmasq_masquerade_networks.internal_net }} through {{ dnsmasq_masquerade_networks.internal_dev }}
 -A POSTROUTING -s {{ dnsmasq_masquerade_networks.internal_net }} -o {{ dnsmasq_masquerade_networks.external_dev }} -j MASQUERADE
 
