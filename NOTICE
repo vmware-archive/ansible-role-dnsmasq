@@ -1,4 +1,5 @@
-{#
+COPYRIGHT AND LICENSE
+
    Copyright 2015 VMware, Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,18 +13,6 @@
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
-#} 
-domain={{ dnsmasq_domain_name }}
-resolv-file={{ dnsmasq_resolv_file }}
-dhcp-hostsfile={{ dnsmasq_dhcp_hosts }}
-expand-hosts
-min-port=4096
-rebind-localhost-ok
-#interface=
-addn-hosts={{ dnsmasq_etc_path }}/hosts.{{ dnsmasq_domain_name }}
-dhcp-lease-max=255
-dhcp-authoritative
-{% for d in dnsmasq_dhcp_ranges -%}
-dhcp-range=tag:{{ d.Interface }},{{ d.Range }},{{ d.Netmask }},{{ d.Lease }}
-dhcp-option=tag:{{ d.Interface }},3,{{ d.DNS }}
-{% endfor -%}
+ 
+ 
+THIRD PARTY NOTICES:
