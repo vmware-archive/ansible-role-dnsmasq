@@ -15,4 +15,4 @@
 #  limitations under the License.
 #
 [archccenter]
-supervio-ui.vmware.local ansible_python_interpreter=python2 ansible_ssh_pass=vmware
+chaperone-ui.vmware.local ansible_python_interpreter=python2 ansible_ssh_pass=vmware
