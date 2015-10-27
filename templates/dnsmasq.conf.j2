@@ -12,18 +12,23 @@
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
-#} 
+#}
+# {{ ansible_managed }}
 domain={{ dnsmasq_domain_name }}
+{% if dnsmasq_nameservers is defined -%}
 resolv-file={{ dnsmasq_resolv_file }}
+{% endif -%}
 dhcp-hostsfile={{ dnsmasq_dhcp_hosts }}
 expand-hosts
 min-port=4096
 rebind-localhost-ok
-#interface=
-addn-hosts={{ dnsmasq_etc_path }}/hosts.{{ dnsmasq_domain_name }}
+addn-hosts={{ dnsmasq_etc_path }}/hosts
 dhcp-lease-max=255
 dhcp-authoritative
+# ranges for one or more networks to which to serve DHCP
 {% for d in dnsmasq_dhcp_ranges -%}
+interface={{ d.Interface }}
 dhcp-range=tag:{{ d.Interface }},{{ d.Range }},{{ d.Netmask }},{{ d.Lease }}
 dhcp-option=tag:{{ d.Interface }},3,{{ d.DNS }}
 {% endfor -%}
+log-queries
