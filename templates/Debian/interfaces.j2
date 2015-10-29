@@ -21,6 +21,7 @@ iface {{ interface.device }} inet static
     netmask {{ interface.netmask }}
     broadcast {{ interface.broadcast }}
 {% if interface.gateway is defined %}    gateway {{ interface.gateway }}{% endif %}
+
 {% endfor %}
 
 # the end
