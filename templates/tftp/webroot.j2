@@ -13,25 +13,20 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
----
-- name: restart dnsmasq
-  service: name=dnsmasq state=restarted
+<VirtualHost *:{{ dnsmasq_tftp_web_port }}>
+    ServerName tftp.{{ dnsmasq_domain_name }}
+    ServerAdmin webmaster@example.com
 
-- name: reboot server
-  command: shutdown -r now "Ansible updates triggered"
-  async: 0
-  poll: 0
-  ignore_errors: true
-  notify:
-    - wait for server
+    DocumentRoot /tftp/webroot
+    Alias /webroot /tftp/webroot
 
-- name: enable webroot
-  command: "a2ensite tftp"
+    <Directory />
+        Options FollowSymLinks
+        AllowOverride None
+        Require all granted
+    </Directory>
 
-- name: restart web server
-  service: name=apache2 state=restarted
-
-- name: wait for server
-  sudo: false
-  local_action: wait_for host={{ inventory_hostname }} state=started
-
+    ErrorLog /var/log/apache2/tftp_error.log
+    CustomLog /var/log/apache2/tftp_access.log combined
+    LogLevel {{ dnsmasq_tftp_web_loglevel }}
+</VirtualHost>

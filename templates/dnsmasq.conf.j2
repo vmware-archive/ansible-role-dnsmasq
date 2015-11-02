@@ -18,17 +18,26 @@ domain={{ dnsmasq_domain_name }}
 {% if dnsmasq_nameservers is defined -%}
 resolv-file={{ dnsmasq_resolv_file }}
 {% endif -%}
-dhcp-hostsfile={{ dnsmasq_dhcp_hosts }}
+dhcp-hostsfile={{ dnsmasq_dhcp_hosts_dir }}
 expand-hosts
+addn-hosts={{ dnsmasq_etc_path }}/hosts
 min-port=4096
 rebind-localhost-ok
-addn-hosts={{ dnsmasq_etc_path }}/hosts
 dhcp-lease-max=255
 dhcp-authoritative
-# ranges for one or more networks to which to serve DHCP
-{% for d in dnsmasq_dhcp_ranges -%}
-interface={{ d.Interface }}
-dhcp-range=tag:{{ d.Interface }},{{ d.Range }},{{ d.Netmask }},{{ d.Lease }}
-dhcp-option=tag:{{ d.Interface }},3,{{ d.DNS }}
-{% endfor -%}
 log-queries
+read-ethers
+# ranges for one or more networks to which to serve DHCP
+{% for d in dnsmasq_dhcp_networks -%}
+interface={{ d.device }}
+dhcp-range=tag:{{ d.device }},{{ d.range }},{{ d.netmask }},{{ d.lease }}
+dhcp-option=tag:{{ d.device }},3,{{ d.dns }}
+{% endfor -%}
+{% for cn in dnsmasq_cnames %}
+cname={{ cn.host }},{{ cn.target }}
+{% endfor -%}
+{% if dnsmasq_enable_tftp %}
+dhcp-boot=pxelinux.0
+enable-tftp
+tftp-root=/tftp/pxeboot
+{% endif -%}

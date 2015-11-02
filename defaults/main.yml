@@ -1,0 +1,74 @@
+#
+#  Copyright 2015 VMware, Inc.
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+---
+# external interface (for NAT, this is generally a DHCP client based NIC).
+dnsmasq_dhcp_interfaces: eth0
+
+# For each net device that DHCP is desired, set the network up as a static router interface
+# Format: - {  device: eth1, address: "172.16.69.1", netmask: "255.255.255.0", broadcast: "172.16.69.255", }
+dnsmasq_static_interfaces: []
+
+# Ranges to serve for DHCP IP addresses not otherwise statically assigned.
+# Format:  - { Interface: eth1, Range: "172.16.69.32,172.16.69.254", Netmask: "255.255.255.0", Lease: 1440, DNS: "172.16.69.1" }
+dnsmasq_dhcp_ranges: []
+
+# Set static reservations here for assuring specific serves addresses
+# These need not be in the ranges above.
+# Format: - { Mac: "00:50:56:36:F7:2B", Address: "172.16.69.10" }
+dnsmasq_dhcp_reservations: []
+
+# The path to 'additional' dnsmasq configurations
+dnsmasq_etc_path: "/etc/dnsmasq.d"
+
+# The general domain name to serve up
+dnsmasq_domain_name: "corp.local"
+
+# the path to the the resolv file we want to use
+dnsmasq_resolv_file: "{{ dnsmasq_etc_path }}/dnsmasq.resolv"
+
+# the path to the the resolv file we want to use
+dnsmasq_dhcp_hosts_dir: "{{ dnsmasq_etc_path }}/dhcp-hosts"
+
+# CNAME records
+# Format: - { hlst: "alias.corp.local", target: "target.corp.local" }
+dnsmasq_cnames: []
+
+# Hosts not otherwise setup by DHCP requestors we want in the domain.
+# Format:   - { ipv4: "10.150.111.238", host: "gerrit.corp.local" }
+dnsmasq_additional_hosts: []
+
+# Enable tftp services
+dnsmasq_enable_tftp: False
+dnsmasq_tftp_web_port: 80
+dnsmasq_tftp_web_loglevel: "INFO"
+dnsmasq_tftp_iso_mountpoint: "/tmp/tftp_iso_mount"
+dnsmasq_tftp_images_dir: "/tftp/pxeboot/images"
+
+# TODO: genericize this or remove it and require its definition in related tasks.
+dnsmasq_tftp_hostname: "tftp.cloudbuilders.vmware.local"
+
+# TODO: Remove the remainder since specific to ESXi
+# --- ESXi specific info
+# ESXi PXE boot installer info
+dnsmasq_tftp_esxi_version: "6.0.0-24945856"
+dnsmasq_tftp_iso: "VMware-VMvisor-Installer-{{ dnsmasq_tftp_esxi_version }}.x86_64.iso"
+
+# Format: root,user2,myname
+esxi_full_access_users: root
+
+esxi_nfs_stores: []
+esxi_firewall_enabled: "yes"
+esxi_firewall_services: "syslog sshClient ntpClient updateManager httpClient netdump"

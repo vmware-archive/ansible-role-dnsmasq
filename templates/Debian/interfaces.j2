@@ -14,7 +14,7 @@ iface {{ interface.device}} inet dhcp
 {% endfor %}
 
 # Static interfaces
-{% for interface in dnsmasq_static_interfaces -%}
+{% for interface in dnsmasq_dhcp_networks -%}
 auto {{ interface.device }}
 iface {{ interface.device }} inet static
     address {{ interface.address }}
