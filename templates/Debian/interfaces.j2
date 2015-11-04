@@ -8,20 +8,41 @@ auto lo
 iface lo inet loopback
 
 # DHCP interfaces
-{% for interface in dnsmasq_dhcp_interfaces -%}
+{% for interface in dnsmasq_external_interfaces -%}
 auto {{ interface.device }}
-iface {{ interface.device}} inet dhcp
+{% if interface.type == "dhcp" %}
+iface {{ interface.device }} inet dhcp
+{% else %}
+iface {{ interface.device }} inet static
+    address {{ interface.address }}
+    netmask {{ interface.netmask }}
+    {% if interface.broadcast is defined -%}
+    broadcast {{ interface.broadcast }}
+    {% endif -%}
+    {% if interface.gateway is defined -%}
+    gateway {{ interface.gateway }}
+    {% endif -%}
+    {% if interface.dns is defined -%}
+    dns-nameservers {{ interface.dns }}
+    {% endif -%}
+    {% if interface.search is defined -%}
+    dns-search {{ interface.search }}
+    {% endif -%}
+{% endif %}
 {% endfor %}
 
-# Static interfaces
-{% for interface in dnsmasq_dhcp_networks -%}
+# Static DHCP Serving interfaces
+{% for interface in dnsmasq_dhcp_networks %}
 auto {{ interface.device }}
 iface {{ interface.device }} inet static
     address {{ interface.address }}
     netmask {{ interface.netmask }}
     broadcast {{ interface.broadcast }}
-{% if interface.gateway is defined %}    gateway {{ interface.gateway }}{% endif %}
+    {% if interface.gateway is defined -%}
+    gateway {{ interface.gateway }}
+    {% endif %}
+# end {{ interface.device }}
 
-{% endfor %}
+{% endfor -%}
 
 # the end

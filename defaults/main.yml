@@ -15,7 +15,8 @@
 #
 ---
 # external interface (for NAT, this is generally a DHCP client based NIC).
-dnsmasq_dhcp_interfaces: eth0
+dnsmasq_dhcp_interfaces:
+  - eth0
 
 # For each net device that DHCP is desired, set the network up as a static router interface
 # Format: - {  device: eth1, address: "172.16.69.1", netmask: "255.255.255.0", broadcast: "172.16.69.255", }
