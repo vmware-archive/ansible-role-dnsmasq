@@ -16,5 +16,5 @@
 # {{ ansible_managed }}
 # format: [<hwaddr>][,id:<client_id>|*][,set:<tag>][,<ipaddr>][,<hostname>][,<lease_time>][,ignore]
 {% for d in dnsmasq_dhcp_reservations -%}
-{{ d.mac }},,{{ d.address }},{{ d.hostname }}
+{{ d.mac }},{{ d.address }},{{ d.hostname }}
 {% endfor -%}
