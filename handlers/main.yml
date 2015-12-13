@@ -17,21 +17,25 @@
 - name: restart dnsmasq
   service: name=dnsmasq state=restarted
 
-- name: reboot server
-  command: shutdown -r now "Ansible updates triggered"
-  async: 0
-  poll: 0
-  ignore_errors: true
-  notify:
-    - wait for server
-
 - name: enable webroot
   command: "a2ensite tftp"
 
 - name: restart web server
   service: name=apache2 state=restarted
 
+- name: reboot server
+  command: shutdown -r now "Ansible updates triggered reboot"
+  async: 0
+  poll: 0
+  ignore_errors: true
+  notify:
+    - wait for server
+
 - name: wait for server
   sudo: false
-  local_action: wait_for host={{ inventory_hostname }} state=started
-
+  local_action:
+    wait_for
+    host={{ inventory_hostname }}
+    port=22
+    delay=30
+    timeout=300
