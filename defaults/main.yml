@@ -57,9 +57,7 @@ dnsmasq_tftp_web_port: 80
 dnsmasq_tftp_web_loglevel: "INFO"
 dnsmasq_tftp_iso_mountpoint: "/tmp/tftp_iso_mount"
 dnsmasq_tftp_images_dir: "/tftp/pxeboot/images"
-
-# TODO: genericize this or remove it and require its definition in related tasks.
-dnsmasq_tftp_hostname: "tftp.cloudbuilders.vmware.local"
+dnsmasq_tftp_hostname: "tftp.corp.local"
 
 # TODO: Remove the remainder since specific to ESXi
 # --- ESXi specific info
