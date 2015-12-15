@@ -31,6 +31,10 @@ install --firstdisk=local --overwritevmfs --novmfsondisk
 network --bootproto=dhcp --device={{ vmnic }} --addvmportgroup=0
 {% endfor %}
 
+{% for vmnic in esxi_static_vmnics -%}
+network --bootproto=static --addvmportgroup=0 --device={{ vmnic.name }} --ip={{ vmnic.address }} --netmask={{ vmnic.netmask }} --gateway={{ vmnic.gateway }} --nameserver={{ vmnic.dns1 }} --hostname={{ vmnic.hostname }}
+{% endfor %}
+
 # reboots the host after the scripted installation is completed
 reboot
 
@@ -71,8 +75,10 @@ esxcli storage nmp satp set --satp VMW_SATP_SYMM --default-psp VMW_PSP_RR
 esxcli storage nmp satp set --satp VMW_SATP_DEFAULT_AA --default-psp VMW_PSP_RR
 
 ## VSWITCH CONFIGURATIONS ##
-# configure portgroup on vSwitch0
-esxcli network vswitch standard portgroup add --portgroup-name Management --vswitch-name vSwitch0
+# configure portgroups on vSwitch
+{% for item in esxi_vswitches -%}
+esxcli network vswitch standard portgroup add --portgroup-name {{ item.pgname }} --vswitch-name {{ item.vsname }}
+{% endfor %}
 
 # Disable IPv6 for VMkernel interfaces
 esxcli system module parameters set -m tcpip3 -p ipv6=0

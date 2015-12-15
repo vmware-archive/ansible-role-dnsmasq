@@ -40,4 +40,7 @@ cname={{ cn.host }},{{ cn.target }}
 dhcp-boot=pxelinux.0
 enable-tftp
 tftp-root=/tftp/pxeboot
+{% if dnsmasq_tftp_unique_root %}
+tftp-unique-root
+{% endif -%}
 {% endif -%}

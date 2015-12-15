@@ -1,6 +1,6 @@
 DEFAULT vesamenu.c32
 TIMEOUT 50
-ONTIMEOUT ESXi-{{ dnsmasq_tftp_esxi_version }}
+ONTIMEOUT ESXi-{{ esxi_tftp_esxi_version }}
 PROMPT 1
 MENU INCLUDE pxelinux.cfg/pxe.conf
 NOESCAPE 1
@@ -12,12 +12,12 @@ LABEL BootLocal
         Boot to local hard disk
         ENDTEXT
 
-LABEL ESXi-{{ dnsmasq_tftp_esxi_version }}
-        KERNEL /images/ESXi-{{ dnsmasq_tftp_esxi_version }}/mboot.c32
-        APPEND -c /images/ESXi-{{ dnsmasq_tftp_esxi_version }}/boot.cfg ks=http://{{ dnsmasq_tftp_hostname }}/KS/ESX_KS.CFG
-        MENU LABEL ESXi-{{ dnsmasq_tftp_esxi_version }}
+LABEL ESXi-{{ esxi_tftp_esxi_version }}
+        KERNEL /images/ESXi-{{ esxi_tftp_esxi_version }}/mboot.c32
+        APPEND -c /images/ESXi-{{ esxi_tftp_esxi_version }}/boot.cfg ks=http://{{ dnsmasq_tftp_hostname }}/KS/ESX_KS.CFG
+        MENU LABEL ESXi-{{ esxi_tftp_esxi_version }}
         TEXT HELP
-        Install ESXi-{{ dnsmasq_tftp_esxi_version }}
+        Install ESXi-{{ esxi_tftp_esxi_version }}
         ENDTEXT
 
 # Menus
