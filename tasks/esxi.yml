@@ -1,0 +1,72 @@
+#
+#  Copyright 2015 VMware, Inc.
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+---
+- name: assure boot image media directory exists
+  file: dest="{{ dnsmasq_tftp_images_dir }}" state=directory recurse=yes mode=0755
+  when: dnsmasq_enable_tftp
+
+- name: assure mount point exists for mounting Installer ISO
+  file: dest="/tmp/esxi_iso" state=directory mode=0755
+  when: dnsmasq_enable_tftp
+
+- name: check for existing boot.cfg
+  stat:
+    path: "{{ dnsmasq_tftp_images_dir }}/boot.cfg"
+    get_checksum: no
+    get_md5: no
+  register: bootcfg
+  when: dnsmasq_enable_tftp
+
+- name: mount installer ISO
+  mount:
+    name: "{{ esxi_tftp_iso_mountpoint }}"
+    src: "{{ esxi_tftp_iso }}"
+    fstype: auto
+    opts: "ro"
+    state: mounted
+  when: dnsmasq_enable_tftp and not bootcfg.stat.exists
+
+- name: copy boot media
+  command: "cp -r {{ esxi_tftp_iso_mountpoint }}/. {{ dnsmasq_tftp_images_dir }}/."
+  when: dnsmasq_enable_tftp and not bootcfg.stat.exists
+
+- name: unmount installer ISO
+  mount:
+    name: "{{ esxi_tftp_iso_mountpoint }}"
+    src: "{{ esxi_tftp_iso }}"
+    fstype: auto
+    opts: "ro"
+    state: unmounted
+  when: dnsmasq_enable_tftp and not bootcfg.stat.exists
+
+- name: fixup boot.cfg
+  command: 'sudo sed -e "s#/##g" -e "3s#^#prefix=images/ESXi-{{ esxi_tftp_esxi_version }}/\n#" -i.bak boot.cfg'
+  args:
+    creates: "{{ dnsmasq_tftp_images_dir }}/boot.cfg.bak"
+    chdir: "{{ dnsmasq_tftp_images_dir }}"
+  when: dnsmasq_enable_tftp
+
+- name: create kickstart configurations directory
+  file: dest="{{ dnsmasq_tftp_kickstart_dir }}" state=directory mode=0755
+  when: dnsmasq_enable_tftp
+
+- name: create kickstart file
+  template:
+    src: "{{ dnsmasq_tftp_kickstart_template }}"
+    dest: "{{ dnsmasq_tftp_kickstart_dir }}/{{ dnsmasq_tftp_kickstart_file }}"
+
+    mode: 0644
+  when: dnsmasq_enable_tftp

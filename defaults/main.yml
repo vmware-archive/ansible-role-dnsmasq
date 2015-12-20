@@ -62,40 +62,8 @@ dnsmasq_tftp_web_port: 80
 dnsmasq_tftp_web_loglevel: "INFO"
 dnsmasq_tftp_images_dir: "/tftp/pxeboot/images"
 dnsmasq_tftp_hostname: "tftp.corp.local"
+dnsmasq_tftp_kickstart_dir: "/tftp/webroot/KS"
 
-# TODO: Remove the remainder since specific to ESXi
-# --- ESXi specific info
-# ESXi PXE boot installer info
-esxi_tftp_esxi_version: "6.0.0-24945856"
-esxi_tftp_iso: "VMware-VMvisor-Installer-{{ esxi_tftp_esxi_version }}.x86_64.iso"
-esxi_tftp_iso_mountpoint: "/tmp/tftp_iso_mount"
-
-# Format: root,user2,myname
-esxi_full_access_users: root
-
-# NFS stores to set as shared storage on ESXi hosts.
-# Format:  - { ipv4: "nfs-01a.corp.local",  export: "/exports/esxi", vol_name: "nfs-01a" }
-esxi_nfs_stores: []
-
-# Setup for firewall services
-esxi_firewall_enabled: "yes"
-esxi_firewall_services: "syslog sshClient ntpClient updateManager httpClient netdump"
-
-# List any vmnics to setup for DHCP
-esxi_dhcp_vmnics:
-  - vmnic0
-
-# List any vmnics to setup for static IP (examples included)
-# Format:  - { name: "vmnic0", hostname: "esx-oob-01a.corp.local",  address: "192.168.110.50", netmask: "255.255.255.0", gateway: "192.168.110.1", dns1: "192.168.110.1" }
-esxi_static_vmnics: []
-
-# List any vSwitches and portgroups to setup
-# Format:
-esxi_vswitches:
-  - { vsname: "vSwitch0", pgname: "Management" }
-
-# Set the kickstart info: target is the target environment (and thus
-# has a directory in templates/tftp/; and template is the template
-# to use for generating the kickstart (see templates/tftp).
-esxi_kickstart_target: "vpod"
-esxi_kickstart_template: "ESX_VPOD_KS.CFG.j2"
+# the environment -- includes the tasks to setup the tftp services
+# for specified environment 
+dnsmasq_tftp_env: 'esxi'
