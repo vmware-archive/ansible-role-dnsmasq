@@ -24,6 +24,10 @@ internal servers while providing them network access via NAT.
 # Default domain name
 dnsmasq_domain_name: "corp.local"
 
+# Interfaces that should supply DNS resolution, but not DHCP
+# Exapmle: dnsmasq_only: [ "eth2", "eth5" ]
+dnsmasq_dns_only: []
+
 # dhcp interfaces (implicitely *not* DHCP serving) -- see sample
 dnsmasq_external_interfaces: []
 #  - {'search': 'corp.local vmware.com', 'broadcast': '192.168.0.255', 'netmask': '255.255.255.0', 'dns': '192.168.0.1 192.168.0.2', 'address': '192.168.0.2', 'device': 'eth0', 'type': 'static', 'gateway': '192.168.0.1'}

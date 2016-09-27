@@ -33,6 +33,9 @@ interface={{ d.device }}
 dhcp-range=tag:{{ d.device }},{{ d.range }},{{ d.netmask }},{{ d.lease }}
 dhcp-option=tag:{{ d.device }},3,{{ d.dns }}
 {% endfor -%}
+{% for d in dnsmasq_dns_only -%}
+interface={{ d }}
+{% endfor -%}
 {% for cn in dnsmasq_cnames %}
 cname={{ cn.host }},{{ cn.target }}
 {% endfor -%}
