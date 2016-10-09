@@ -14,5 +14,24 @@
 #  limitations under the License.
 #
 ---
-- name: PHOTON NOT IMPLENTED YET!
-  command: echo "WARNING! PHOTON NOT IMPLEMENTED YET FOR DNSMASQ!"
+- name: assure dnsmasq installed
+  yum: pkg=dnsmasq state=latest
+
+- name: point systemd-resolved to localhost
+  template: src=Photon/resolv.conf.j2 dest=/etc/systemd/resolved.conf mode=0644
+  notify:
+    - restart systemd-resolved
+
+- name: setup network interfaces
+  template: src=Photon/interfaces.j2 dest=/etc/systemd/network/{{ item.name }}.network mode=0644
+  notify:
+    - restart systemd-networkd
+  with_items:
+     - "{{ dnsmasq_external_interfaces }}"
+     - "{{ dnsmasq_dhcp_networks }}"
+
+# For now, this will fail -- just a reminder we need to introduce
+# syslinux to the Photon OS distribution.
+- name: install syslinux
+  yum: pkg=syslinux state=present
+  when: dnsmasq_enable_tftp

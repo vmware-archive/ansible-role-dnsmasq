@@ -1,0 +1,22 @@
+# {{ ansible_managed }}
+
+[Match]
+Name={{ item.device }}
+
+[Network]
+{% if item.type is defined and item.type == "dhcp" %}
+DHCP=yes
+{% else %}
+DHCP=no
+
+[Address]
+Address={{ item.address }}/{{ item.prefixbits }}
+{% if item.broadcast is defined -%}
+Broadcast={{ item.broadcast }}
+{% endif -%}
+{% endif %}
+
+{% if item.gateway is defined -%}
+[Route]
+Gateway={{ item.gateway }}
+{% endif %}

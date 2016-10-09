@@ -28,9 +28,9 @@ dnsmasq_domain_name: "corp.local"
 # Exapmle: dnsmasq_only: [ "eth2", "eth5" ]
 dnsmasq_dns_only: []
 
-# dhcp interfaces (implicitely *not* DHCP serving) -- see sample
+# 'External' interfaces (implicitly *not* DHCP serving), often one use for external NAT
+# Format: - { search: 'corp.local vmware.com',  broadcast: '192.168.0.255', prefixbits: "24", netmask: '255.255.255.0',  dns1: '10.148.20.5', dns2: '10.148.20.6', address: '192.168.0.2', device: 'eth3', type: 'static', gateway: '192.168.0.1', name: "public"}
 dnsmasq_external_interfaces: []
-#  - {'search': 'corp.local vmware.com', 'broadcast': '192.168.0.255', 'netmask': '255.255.255.0', 'dns': '192.168.0.1 192.168.0.2', 'address': '192.168.0.2', 'device': 'eth0', 'type': 'static', 'gateway': '192.168.0.1'}
 
 # external interface (for NAT, this is generally a DHCP client based NIC).
 dnsmasq_dhcp_interfaces:
@@ -40,8 +40,8 @@ dnsmasq_dhcp_interfaces:
 # Format:  - { Interface: eth1, Range: "172.16.69.32,172.16.69.254", Netmask: "255.255.255.0", Lease: 1440, DNS: "172.16.69.1" }
 dnsmasq_dhcp_ranges: []
 
-# For each net device that DHCP is desired, set the network up as a static router interface
-# Format:  - {  device: "eth1", address: "192.168.110.2", netmask: "255.255.255.0", broadcast: "192.168.110.255",  range: "192.168.110.100,192.168.110.199", lease: 1440, dns: "192.168.110.2" }
+# For each net device that DHCP is desired, set the network up as a static router interface.
+# Format: - {  device: "eth0", address: "192.168.10.2", prefixbits: "24", netmask: "255.255.255.0", broadcast: "192.168.10.255",  range: "192.168.10.3,static", lease: 1440, dns: "192.168.10.2", name: "management" }
 dnsmasq_dhcp_networks: []
 
 # Set static reservations here for assuring specific serves addresses
@@ -73,6 +73,11 @@ dnsmasq_tftp_web_port: 80
 dnsmasq_tftp_web_loglevel: "INFO"
 dnsmasq_tftp_images_dir: "/tftp/pxeboot/images"
 dnsmasq_tftp_hostname: "tftp.corp.local"
+dnsmasq_tftp_kickstart_dir: "/tftp/webroot/KS"
+
+# the environment -- includes the tasks to setup the tftp services
+# for specified environment 
+dnsmasq_tftp_env: 'esxi'
 
 # TODO: Remove the remainder since specific to ESXi
 # --- ESXi specific info

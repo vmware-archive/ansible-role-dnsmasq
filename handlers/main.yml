@@ -14,6 +14,9 @@
 #  limitations under the License.
 #
 ---
+- name: restart systemd-resolved
+  service: name=systemd-resolved state=restarted
+
 - name: restart dnsmasq
   service: name=dnsmasq state=restarted
 
@@ -23,6 +26,9 @@
 - name: restart web server
   service: name=apache2 state=restarted
 
+- name: restart systemd-networkd
+  service: name=systemd-networkd state=restarted
+  
 - name: reboot server
   command: shutdown -r now "Ansible updates triggered reboot"
   async: 0

@@ -15,8 +15,8 @@
 #}
 # {{ ansible_managed }}
 domain={{ dnsmasq_domain_name }}
-{% if dnsmasq_nameservers is defined -%}
-resolv-file={{ dnsmasq_resolv_file }}
+{% if dnsmasq_nameservers is defined and dnsmasq_nameservers -%}
+resolv-file={{ dnsmasq_etc_path }}/resolv.dnsmasq
 {% endif -%}
 dhcp-hostsfile={{ dnsmasq_dhcp_hosts_dir }}
 expand-hosts

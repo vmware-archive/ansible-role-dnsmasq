@@ -20,5 +20,7 @@
 - include: photon.yml
   when: ansible_lsb.codename == 'Photon'
 
+- include: common.yml
+
 - include: esxi.yml
   when: dnsmasq_tftp_env == 'esxi'

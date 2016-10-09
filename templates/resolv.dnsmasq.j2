@@ -15,6 +15,11 @@
    limitations under the License.
 #}
 # {{ ansible_managed }}
-{% for n in dnsmasq_nameservers -%} 
-nameserver {{ n }}
+{% for n in dnsmasq_external_interfaces -%} 
+{% if n.dns1 is defined %}
+nameserver {{ n.dns1 }}
+{% endif %}
+{% if n.dns2 is defined %}
+nameserver {{ n.dns2 }}
+{% endif %}
 {% endfor -%}
