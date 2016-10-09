@@ -69,17 +69,21 @@
     - restart web server
   when: dnsmasq_enable_tftp
 
-#- name: setup the tftp webroot
-#  template:
-#    src: tftp/webroot.j2
-#    dest: /etc/apache2/sites-available/tftp.conf
-#    owner: root
-#    group: root
-#  notify:
-#    - restart dnsmasq
-#    - enable webroot
-#    - restart web server
-#  when: dnsmasq_enable_tftp
+# Note: At the next upgrade of this role, all vhosts may be
+# created as part of the apache role vhost setup. We are
+# looking at that rather than disparate setups all in various
+# disparate roles.
+- name: setup the tftp webroot
+  template:
+    src: tftp/webroot.j2
+    dest: /etc/apache2/sites-available/tftp.conf
+    owner: root
+    group: root
+  notify:
+    - restart dnsmasq
+    - enable webroot
+    - restart web server
+  when: dnsmasq_enable_tftp and (ansible_os_family == 'Debian')
 
 - name: setup the tftp index page
   template:
