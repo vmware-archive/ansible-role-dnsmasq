@@ -28,7 +28,7 @@
 
 - name: restart systemd-networkd
   service: name=systemd-networkd state=restarted
-  
+
 - name: reboot server
   command: shutdown -r now "Ansible updates triggered reboot"
   async: 0

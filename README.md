@@ -76,7 +76,7 @@ dnsmasq_tftp_hostname: "tftp.corp.local"
 dnsmasq_tftp_kickstart_dir: "/tftp/webroot/KS"
 
 # the environment -- includes the tasks to setup the tftp services
-# for specified environment 
+# for specified environment
 dnsmasq_tftp_env: 'esxi'
 
 # TODO: Remove the remainder since specific to ESXi
@@ -132,7 +132,7 @@ esxi_kickstart_template: "ESX_VPOD_KS.CFG.j2"
 ```
 
 # License and Copyright
- 
+
 Copyright 2015 VMware, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");

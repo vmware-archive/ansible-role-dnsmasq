@@ -69,5 +69,5 @@ dnsmasq_tftp_hostname: "tftp.corp.local"
 dnsmasq_tftp_kickstart_dir: "/tftp/webroot/KS"
 
 # the environment -- includes the tasks to setup the tftp services
-# for specified environment 
+# for specified environment
 dnsmasq_tftp_env: 'esxi'
